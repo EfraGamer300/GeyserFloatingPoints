@@ -93,7 +93,9 @@ public class PositionPacketsRewriter implements JavaPacketListener {
 
     private boolean checkForReOffset(GeyserFPUser user, double x, double y, double z) {
         Vector3i pos = Vector3i.from(x, y, z);
-        if (pos.distance(user.prevPosition) > 0 && user.shouldShowPosition()) {
+        boolean moved = !pos.equals(user.prevPosition);
+        user.prevPosition = pos;
+        if (moved && user.shouldShowPosition()) {
             SetTitlePacket titlePacket = new SetTitlePacket();
             titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
             titlePacket.setText("XYZ: " + pos.add(user.offset()));

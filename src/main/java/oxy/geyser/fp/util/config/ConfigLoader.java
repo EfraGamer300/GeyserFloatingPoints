@@ -18,14 +18,14 @@ import java.util.Collections;
 // Credits to https://github.com/onebeastchris/MagicMenu/
 public class ConfigLoader {
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static <T> T load(Extension extension, Class<?> extensionClass, Class<T> configClass) {
+    public static Config load(Extension extension, Class<?> extensionClass) {
         File configFile = extension.dataFolder().resolve("config.yml").toFile();
 
         // Ensure the data folder exists
         if (!extension.dataFolder().toFile().exists()) {
             if (!extension.dataFolder().toFile().mkdirs()) {
                 extension.logger().error("Failed to create data folder");
-                return null;
+                return Config.DEFAULT;
             }
         }
 
@@ -42,7 +42,7 @@ public class ConfigLoader {
                 }
             } catch (IOException | URISyntaxException e) {
                 extension.logger().error("Failed to create config", e);
-                return null;
+                return Config.DEFAULT;
             }
         }
 
@@ -52,10 +52,10 @@ public class ConfigLoader {
                     .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
                     .disable(DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES)
                     .disable(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES)
-                    .readValue(configFile, configClass);
+                    .readValue(configFile, Config.class);
         } catch (IOException e) {
             extension.logger().error("Failed to load config", e);
-            return null;
+            return Config.DEFAULT;
         }
     }
 }

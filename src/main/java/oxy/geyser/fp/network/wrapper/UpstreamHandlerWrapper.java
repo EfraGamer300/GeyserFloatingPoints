@@ -16,6 +16,7 @@ import static oxy.geyser.fp.session.GeyserFPUser.SHOW_COORDINATES_GAME_RULE;
 public class UpstreamHandlerWrapper extends UpstreamSession {
     private final GeyserFPUser user;
     private final UpstreamSession prevSession;
+    private boolean sessionAdaptorWrapped = false;
 
     public UpstreamHandlerWrapper(GeyserFPUser user, BedrockServerSession session, UpstreamSession prevSession) {
         super(session);
@@ -30,17 +31,23 @@ public class UpstreamHandlerWrapper extends UpstreamSession {
 
     @Override
     public void sendPacket(@NonNull BedrockPacket packet) {
-        if (packet instanceof StartGamePacket) {
-            GeyserUtil.wrapAroundSessionAdaptor(user);
-        }
-
+        checkForStartGame(packet);
         hideCoordinatesIfOffset(packet);
         prevSession.sendPacket(packet);
     }
 
     @Override
     public void sendPacketImmediately(@NonNull BedrockPacket packet) {
+        checkForStartGame(packet);
+        hideCoordinatesIfOffset(packet);
         prevSession.sendPacketImmediately(packet);
+    }
+
+    private void checkForStartGame(BedrockPacket packet) {
+        if (!sessionAdaptorWrapped && packet instanceof StartGamePacket) {
+            sessionAdaptorWrapped = true;
+            GeyserUtil.wrapAroundSessionAdaptor(user);
+        }
     }
 
     @Override

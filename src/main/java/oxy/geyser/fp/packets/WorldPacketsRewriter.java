@@ -42,6 +42,12 @@ public class WorldPacketsRewriter implements JavaPacketListener {
             event.setPacket(packet.withPosition(packet.getPosition().sub(user.offset())));
         }
 
+        // Geyser forwards this position straight to Bedrock's OpenSignPacket. Without remapping it,
+        // the sign editor opens at the real coordinates while the sign itself is at the spoofed ones.
+        if (event.getPacket() instanceof ClientboundOpenSignEditorPacket packet) {
+            event.setPacket(packet.withPosition(packet.getPosition().sub(user.offset())));
+        }
+
         if (event.getPacket() instanceof ClientboundSetChunkCacheCenterPacket packet) {
             int x = (packet.getChunkX() << 4) - user.offset().getX();
             int z = (packet.getChunkZ() << 4) - user.offset().getZ();
@@ -80,7 +86,6 @@ public class WorldPacketsRewriter implements JavaPacketListener {
 
             final List<BlockChangeEntry> entries = new ArrayList<>();
             for (BlockChangeEntry entry : packet.getEntries()) {
-                user.chunkCache().updateBlock(entry.getPosition(), entry.getBlock());
                 entries.add(new BlockChangeEntry(entry.getPosition().sub(user.offset()), entry.getBlock()));
             }
 

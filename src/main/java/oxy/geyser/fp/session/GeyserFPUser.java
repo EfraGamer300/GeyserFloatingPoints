@@ -8,7 +8,6 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.EntityCache;
-import org.geysermc.geyser.session.cache.TeleportCache;
 import org.geysermc.geyser.session.cache.WorldBorder;
 import oxy.geyser.fp.GeyserFloatingPoints;
 import oxy.geyser.fp.session.cache.ChunkCache;
@@ -51,12 +50,20 @@ public class GeyserFPUser {
         entity.setPosition(entity.position().add(this.offset.toFloat()).sub(offset.toFloat()));
 
         if (teleport) {
+            // A re-offset is not a Java teleport: it only shifts our coordinate frame while
+            // the real position stays the same. MoveEntityAbsolutePacket already relocates the
+            // Bedrock client; no downstream teleport has to be acknowledged.
+            //
+            // Registering an UnconfirmedTeleport here makes Geyser discard every player
+            // movement packet (BedrockMovePlayer.translate) until Bedrock reports the exact
+            // TeleportCache.adjustedPosition. That position is computed from blocks at the
+            // spoofed coordinates, so a cache/world-manager mismatch makes it impossible to
+            // confirm: the player freezes while vehicles keep moving, since vehicle input is
+            // processed before that early return.
             entity.moveAbsolute(
                     entity.position(),
                     entity.getYaw(), entity.getPitch(), entity.isOnGround(), true
             );
-
-            session.setUnconfirmedTeleport(new TeleportCache(session, entity.position(), entity.getPitch(), entity.getYaw(), 0));
         }
 
         try {

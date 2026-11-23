@@ -23,4 +23,9 @@ public class PacketListenerRegistry {
     public void register(JavaPacketListener... listeners) {
         this.javaPacketListeners.addAll(List.of(listeners));
     }
+
+    /** Avoid stacking duplicate listeners when the extension is reloaded. */
+    public void clear() {
+        this.javaPacketListeners.clear();
+    }
 }

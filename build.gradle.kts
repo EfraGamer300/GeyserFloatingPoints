@@ -17,8 +17,8 @@ dependencies {
         exclude(group = "com.google.code.gson", module = "gson")
     }
 
-    compileOnly("org.projectlombok:lombok:1.18.36")
-    annotationProcessor("org.projectlombok:lombok:1.18.36")
+    compileOnly("org.projectlombok:lombok:1.18.46")
+    annotationProcessor("org.projectlombok:lombok:1.18.46")
 
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.15.2")
     implementation("org.cloudburstmc.fastutil.commons:long-common:8.5.15")
