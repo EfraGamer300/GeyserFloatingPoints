@@ -6,6 +6,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.UpstreamSession;
 import org.geysermc.mcprotocollib.network.ClientSession;
 import org.geysermc.mcprotocollib.network.event.session.SessionListener;
+import oxy.geyser.fp.util.Debug;
 import oxy.geyser.fp.network.wrapper.GeyserFPAdapterWrapper;
 import oxy.geyser.fp.network.wrapper.UpstreamHandlerWrapper;
 import oxy.geyser.fp.session.GeyserFPUser;
@@ -21,7 +22,8 @@ public class GeyserUtil {
             final Field field = GeyserImpl.class.getDeclaredField("bootstrap");
             field.setAccessible(true);
             field.set(GeyserImpl.getInstance(), new GeyserBootstrapWrapper(GeyserImpl.getInstance().getBootstrap()));
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            Debug.warn("Could not replace Geyser bootstrap: " + e);
             return false;
         }
         return true;
@@ -34,7 +36,10 @@ public class GeyserUtil {
             List<SessionListener> adapters = new ArrayList<>(session.getListeners());
             session.getListeners().forEach(session::removeListener);
             session.addListener(new GeyserFPAdapterWrapper(user, adapters));
-        } catch (Exception ignored) {
+            Debug.info("Wrapped " + adapters.size() + " downstream listeners for "
+                    + user.session().bedrockUsername());
+        } catch (Exception e) {
+            Debug.warn("Failed to wrap around session adaptor for " + user.session().bedrockUsername() + ": " + e);
             user.session().disconnect("Failed to wrap around session adaptor.");
         }
     }
@@ -45,7 +50,9 @@ public class GeyserUtil {
             final Field upstream = GeyserSession.class.getDeclaredField("upstream");
             upstream.setAccessible(true);
             upstream.set(user.session(), new UpstreamHandlerWrapper(user, session, (UpstreamSession) upstream.get(user.session())));
-        } catch (Exception ignored) {
+            Debug.info("Wrapped upstream handler for " + user.session().bedrockUsername());
+        } catch (Exception e) {
+            Debug.warn("Failed to wrap around upstream handler for " + user.session().bedrockUsername() + ": " + e);
             user.session().disconnect("Failed to wrap around upstream handler.");
         }
     }

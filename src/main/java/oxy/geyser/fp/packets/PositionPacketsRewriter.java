@@ -14,6 +14,7 @@ import oxy.geyser.fp.GeyserFloatingPoints;
 import oxy.geyser.fp.network.event.JavaPacketEvent;
 import oxy.geyser.fp.network.listener.JavaPacketListener;
 import oxy.geyser.fp.session.GeyserFPUser;
+import oxy.geyser.fp.util.Debug;
 import oxy.geyser.fp.util.MathUtil;
 
 public class PositionPacketsRewriter implements JavaPacketListener {
@@ -75,6 +76,8 @@ public class PositionPacketsRewriter implements JavaPacketListener {
 
             final int CAPPED_VALUE = GeyserFloatingPoints.config().maxPosition();
             if (Math.abs(x - user.offset().getX()) > CAPPED_VALUE || Math.abs(z - user.offset().getZ()) > CAPPED_VALUE) {
+                Debug.info("Java teleport pushed " + user.session().bedrockUsername()
+                        + " past capped-value, re-offsetting from " + user.offset());
                 user.offset(MathUtil.calculateOffset(Vector3d.from(x, 0, z)), false);
             }
 
@@ -110,6 +113,9 @@ public class PositionPacketsRewriter implements JavaPacketListener {
             return false;
         }
 
+        Debug.info("Re-offset triggered for " + user.session().bedrockUsername()
+                + ": spoofed=" + pos + ", realXZ=(" + (x + user.offset().getX()) + ", "
+                + (z + user.offset().getZ()) + "), capped-value=" + CAPPED_VALUE);
         user.offset(MathUtil.calculateOffset(Vector3d.from(x + user.offset().getX(), 0, z + user.offset().getZ())), true);
         return true;
     }

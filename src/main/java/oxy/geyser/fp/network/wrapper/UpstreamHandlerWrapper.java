@@ -9,6 +9,7 @@ import org.cloudburstmc.protocol.bedrock.packet.GameRulesChangedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.StartGamePacket;
 import org.geysermc.geyser.session.UpstreamSession;
 import oxy.geyser.fp.session.GeyserFPUser;
+import oxy.geyser.fp.util.Debug;
 import oxy.geyser.fp.util.GeyserUtil;
 
 import static oxy.geyser.fp.session.GeyserFPUser.SHOW_COORDINATES_GAME_RULE;
@@ -46,6 +47,7 @@ public class UpstreamHandlerWrapper extends UpstreamSession {
     private void checkForStartGame(BedrockPacket packet) {
         if (!sessionAdaptorWrapped && packet instanceof StartGamePacket) {
             sessionAdaptorWrapped = true;
+            Debug.info("StartGamePacket sent to " + user.session().bedrockUsername() + ", installing packet adapter");
             GeyserUtil.wrapAroundSessionAdaptor(user);
         }
     }
@@ -66,6 +68,8 @@ public class UpstreamHandlerWrapper extends UpstreamSession {
                     continue;
                 }
                 gameRulesPacket.getGameRules().set(i, new GameRuleData<>(SHOW_COORDINATES_GAME_RULE, false));
+                Debug.info("Forced " + SHOW_COORDINATES_GAME_RULE + " off for "
+                        + user.session().bedrockUsername() + " while coordinates are spoofed");
                 return;
             }
         }

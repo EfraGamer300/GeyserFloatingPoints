@@ -11,6 +11,7 @@ import org.geysermc.geyser.session.cache.EntityCache;
 import org.geysermc.geyser.session.cache.WorldBorder;
 import oxy.geyser.fp.GeyserFloatingPoints;
 import oxy.geyser.fp.session.cache.ChunkCache;
+import oxy.geyser.fp.util.Debug;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -45,6 +46,8 @@ public class GeyserFPUser {
 
     public void offset(Vector3i offset, boolean teleport) {
         final SessionPlayerEntity entity = this.session.getPlayerEntity();
+        Debug.info("Offset change for " + session.bedrockUsername() + ": " + this.offset + " -> " + offset
+                + " (teleport=" + teleport + ", playerPos=" + entity.position() + ")");
 
         // We have to set this first regardless of teleport so the chunks so up properly.
         entity.setPosition(entity.position().add(this.offset.toFloat()).sub(offset.toFloat()));

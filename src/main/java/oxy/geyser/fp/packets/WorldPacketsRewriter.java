@@ -15,6 +15,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.borde
 import oxy.geyser.fp.network.event.JavaPacketEvent;
 import oxy.geyser.fp.network.listener.JavaPacketListener;
 import oxy.geyser.fp.session.GeyserFPUser;
+import oxy.geyser.fp.util.Debug;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +24,8 @@ public class WorldPacketsRewriter implements JavaPacketListener {
     @Override
     public void onReceived(GeyserFPUser user, JavaPacketEvent event) {
         if (event.getPacket() instanceof ClientboundLoginPacket || event.getPacket() instanceof ClientboundRespawnPacket) {
+            Debug.info("Clearing chunk cache for " + user.session().bedrockUsername() + " on "
+                    + event.getPacket().getClass().getSimpleName());
             user.chunkCache().clear();
         }
 
@@ -45,6 +48,8 @@ public class WorldPacketsRewriter implements JavaPacketListener {
         // Geyser forwards this position straight to Bedrock's OpenSignPacket. Without remapping it,
         // the sign editor opens at the real coordinates while the sign itself is at the spoofed ones.
         if (event.getPacket() instanceof ClientboundOpenSignEditorPacket packet) {
+            Debug.info("Sign editor opened for " + user.session().bedrockUsername() + " at "
+                    + packet.getPosition() + " -> " + packet.getPosition().sub(user.offset()));
             event.setPacket(packet.withPosition(packet.getPosition().sub(user.offset())));
         }
 

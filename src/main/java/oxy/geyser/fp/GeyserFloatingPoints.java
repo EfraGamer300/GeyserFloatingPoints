@@ -18,6 +18,7 @@ import oxy.geyser.fp.packets.EntityPacketsRewriter;
 import oxy.geyser.fp.packets.PositionPacketsRewriter;
 import oxy.geyser.fp.packets.WorldPacketsRewriter;
 import oxy.geyser.fp.session.GeyserFPUser;
+import oxy.geyser.fp.util.Debug;
 import oxy.geyser.fp.util.GeyserUtil;
 import oxy.geyser.fp.util.config.Config;
 import oxy.geyser.fp.util.config.ConfigLoader;
@@ -39,7 +40,9 @@ public class GeyserFloatingPoints implements Extension {
     public void onGeyserPostInitializeEvent(GeyserPostInitializeEvent event) {
         // Fabric's extension classloader cannot see the Bedrock protocol classes we wrap.
         // Fail gracefully instead of throwing NoClassDefFoundError during initialization.
+        Debug.info("Initializing on platform " + GeyserImpl.getInstance().platformType().platformName());
         if (PlatformType.FABRIC.equals(GeyserImpl.getInstance().platformType())) {
+            Debug.warn("Fabric is not supported by GeyserFloatingPoints; the extension will stay disabled.");
             logger().error("Fabric is not supported by GeyserFloatingPoints; the extension will stay disabled.");
             return;
         }
@@ -49,19 +52,26 @@ public class GeyserFloatingPoints implements Extension {
             CONFIG = Config.DEFAULT;
             logger().error("Failed to load config; falling back to defaults.");
         }
+        Debug.info("Config loaded: capped-value=" + CONFIG.maxPosition()
+                + ", show-position-by-default=" + CONFIG.showPositionByDefault());
 
         PacketListenerRegistry.instance().clear();
         PacketListenerRegistry.instance().register(new WorldPacketsRewriter());
         PacketListenerRegistry.instance().register(new PositionPacketsRewriter());
         PacketListenerRegistry.instance().register(new EntityPacketsRewriter());
         PacketListenerRegistry.instance().register(new ActionPacketsRewriter());
+        Debug.info("Registered " + PacketListenerRegistry.instance().javaListeners().size() + " packet listeners");
 
         // This will force Geyser into using the chunk cache for platform like Spigot so the world manager pick up the correct block.
         if (!GeyserUtil.wrapAroundGeyserBoostrap()) {
+            Debug.warn("Failed to wrap around Geyser bootstrap: block lookups at spoofed coordinates may be incorrect.");
             logger().error("Failed to wrap around Geyser bootstrap: block lookups at spoofed coordinates may be incorrect.");
+        } else {
+            Debug.info("Geyser bootstrap wrapped successfully (chunk cache will be used)");
         }
 
         enabled = true;
+        Debug.info("Extension enabled");
     }
 
     @Subscribe
@@ -74,11 +84,14 @@ public class GeyserFloatingPoints implements Extension {
         GeyserUtil.wrapAroundUpstreamHandler(user);
 
         SESSION_TO_GFP.put(session, user);
+        Debug.info("Session joined: " + session.bedrockUsername() + " (total sessions: " + SESSION_TO_GFP.size() + ")");
     }
 
     @Subscribe
     public void onSessionLeave(SessionDisconnectEvent event) {
-        SESSION_TO_GFP.remove((GeyserSession) event.connection());
+        final GeyserSession session = (GeyserSession) event.connection();
+        SESSION_TO_GFP.remove(session);
+        Debug.info("Session left: " + session.bedrockUsername() + " (total sessions: " + SESSION_TO_GFP.size() + ")");
     }
 
     @Subscribe
@@ -98,6 +111,8 @@ public class GeyserFloatingPoints implements Extension {
                             return;
                         }
                         user.setPositionShown(!user.shouldShowPosition());
+                        Debug.info("Player " + session.bedrockUsername() + " toggled position display to "
+                                + user.shouldShowPosition());
                         if (!user.shouldShowPosition()) {
                             source.sendMessage("Stop showing your current position.");
                         } else {

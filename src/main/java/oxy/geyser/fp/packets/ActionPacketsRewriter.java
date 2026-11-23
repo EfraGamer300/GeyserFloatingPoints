@@ -13,11 +13,14 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.Serv
 import oxy.geyser.fp.network.event.JavaPacketEvent;
 import oxy.geyser.fp.network.listener.JavaPacketListener;
 import oxy.geyser.fp.session.GeyserFPUser;
+import oxy.geyser.fp.util.Debug;
 
 public class ActionPacketsRewriter implements JavaPacketListener {
     @Override
     public void onSend(GeyserFPUser user, JavaPacketEvent event) {
         if (event.getPacket() instanceof ServerboundPlayerActionPacket packet) {
+            Debug.info("Block action " + packet.getAction() + " by " + user.session().bedrockUsername()
+                    + " at " + packet.getPosition() + " -> " + packet.getPosition().add(user.offset()));
             event.setPacket(packet.withPosition(packet.getPosition().add(user.offset())));
         }
 
@@ -50,6 +53,8 @@ public class ActionPacketsRewriter implements JavaPacketListener {
         }
 
         if (event.getPacket() instanceof ServerboundSignUpdatePacket packet) {
+            Debug.info("Sign update by " + user.session().bedrockUsername() + " at "
+                    + packet.getPosition() + " -> " + packet.getPosition().add(user.offset()));
             event.setPacket(packet.withPosition(packet.getPosition().add(user.offset())));
         }
     }

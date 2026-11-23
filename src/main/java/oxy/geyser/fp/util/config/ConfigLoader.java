@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.geysermc.geyser.api.extension.Extension;
+import oxy.geyser.fp.util.Debug;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -25,6 +26,7 @@ public class ConfigLoader {
         if (!extension.dataFolder().toFile().exists()) {
             if (!extension.dataFolder().toFile().mkdirs()) {
                 extension.logger().error("Failed to create data folder");
+                Debug.warn("Using default config: data folder could not be created");
                 return Config.DEFAULT;
             }
         }
@@ -42,11 +44,13 @@ public class ConfigLoader {
                 }
             } catch (IOException | URISyntaxException e) {
                 extension.logger().error("Failed to create config", e);
+                Debug.warn("Using default config: could not write " + configFile);
                 return Config.DEFAULT;
             }
         }
 
         // Load the config file
+        Debug.info("Loading config from " + configFile);
         try {
             return new ObjectMapper(new YAMLFactory())
                     .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
@@ -55,6 +59,7 @@ public class ConfigLoader {
                     .readValue(configFile, Config.class);
         } catch (IOException e) {
             extension.logger().error("Failed to load config", e);
+            Debug.warn("Using default config: could not parse " + configFile);
             return Config.DEFAULT;
         }
     }

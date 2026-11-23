@@ -19,6 +19,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockChangeEntr
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundLevelChunkWithLightPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundSectionBlocksUpdatePacket;
 import oxy.geyser.fp.session.GeyserFPUser;
+import oxy.geyser.fp.util.Debug;
 
 @RequiredArgsConstructor
 public class ChunkCache {
@@ -28,6 +29,8 @@ public class ChunkCache {
     private final Long2ObjectMap<ClientboundLevelChunkWithLightPacket> chunkPackets = new Long2ObjectOpenHashMap<>();
 
     public void sendChunksWithOffset() {
+        Debug.info("Resending " + this.chunks.size() + " cached chunks with offset "
+                + user.offset() + " to " + user.session().bedrockUsername());
         // This is a bad idea...
         for (Long2ObjectMap.Entry<ChunkSection[]> entry : this.chunks.long2ObjectEntrySet()) {
             final ClientboundLevelChunkWithLightPacket oldPacket = this.chunkPackets.get(entry.getLongKey());
